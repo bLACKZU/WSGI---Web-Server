@@ -1,6 +1,7 @@
 import socket
 import sys
 import io
+import os
 from datetime import date
 
 class WSGIServer():
@@ -35,7 +36,14 @@ class WSGIServer():
         lsock = self.lsock
         while True:
             self.client_connection, self.client_address = lsock.accept()
-            self.handle_one_request()
+            pid = os.fork()
+            if pid == 0:
+                self.lsock.close()
+                self.handle_one_request()
+                self.client_connection.close()
+                os._exit(0)
+            else:
+                self.client_connection.close()
 
     def handle_one_request(self):
 
